@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MovementController : MonoBehaviour
 {
-    [SerializeField] private float speed;
+    [SerializeField] private float speed, sens;
     private float Hori, Vert;
     private float MouseHori, MouseVert;
     private Rigidbody _rb;
@@ -22,11 +22,17 @@ public class MovementController : MonoBehaviour
         MouseHori = Input.GetAxis("Mouse X");
         MouseVert = Input.GetAxis("Mouse Y");
 
-        Vector3 Move = Vector3.forward * Hori + Vector3.right * Vert;
-        Move *= speed;
 
-        _rb.velocity = Move;
+        if (Input.GetMouseButton(1))
+        {
 
-        transform.rotation = Quaternion.Euler(MouseHori * speed, MouseVert * speed, 0f);
+            Vector3 Move = transform.forward * Vert + transform.right * Hori;
+            Move *= speed;
+
+            _rb.velocity = Move;
+
+            transform.rotation = Quaternion.AngleAxis(MouseHori * sens, Vector3.up) * transform.rotation;
+            transform.rotation *= Quaternion.AngleAxis(MouseVert * sens * -1, Vector3.right);
+        }
     }
 }
