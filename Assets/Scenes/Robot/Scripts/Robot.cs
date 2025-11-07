@@ -20,3 +20,13 @@ public class Robot : MonoBehaviour
         }
     }
 }
+
+public class RobotHardware
+{
+    protected Robot robot;
+
+    public void Init(Robot _robot)
+    {
+        robot = _robot;
+    }
+}
