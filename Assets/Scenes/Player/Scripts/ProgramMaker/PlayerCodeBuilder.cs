@@ -53,7 +53,10 @@ public class PlayerCodeBuilder
             ms.Seek(0, System.IO.SeekOrigin.Begin);
             _userAssembly = Assembly.Load(ms.ToArray());
 
-            bool outp =  InitializeUserCode(targetRobot, methods);
+            bool outp =  InitializeUserCode(targetRobot, out methods);
+            Debug.Log(methods.Start);
+            Debug.Log(methods.Update);
+            Debug.Log(methods.userInstance);
             return outp;
         }
         catch (Exception e)
@@ -67,18 +70,15 @@ public class PlayerCodeBuilder
     {
         var references = new List<MetadataReference>();
 
-        // Базовые системные сборки
         references.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
         references.Add(MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location));
         references.Add(MetadataReference.CreateFromFile(typeof(System.Collections.Generic.List<>).Assembly.Location));
 
-        // Unity сборки
         references.Add(MetadataReference.CreateFromFile(typeof(UnityEngine.Object).Assembly.Location));
         references.Add(MetadataReference.CreateFromFile(typeof(UnityEngine.Debug).Assembly.Location));
         references.Add(MetadataReference.CreateFromFile(typeof(UnityEngine.GameObject).Assembly.Location));
         references.Add(MetadataReference.CreateFromFile(typeof(UnityEngine.Mathf).Assembly.Location));
 
-        // Добавляем сборку netstandard (решает основную ошибку)
         try
         {
             var netstandardPath = Assembly.Load("netstandard, Version=2.1.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").Location;
@@ -86,7 +86,6 @@ public class PlayerCodeBuilder
         }
         catch
         {
-            // Альтернативный способ найти netstandard
             var netstandardPath = Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location), "netstandard.dll");
             if (File.Exists(netstandardPath))
             {
@@ -94,7 +93,6 @@ public class PlayerCodeBuilder
             }
         }
 
-        // Добавляем UnityEngine.UIElements если нужно
         try
         {
             var uiElementsAssembly = Assembly.Load("UnityEngine.UIElementsModule");
@@ -105,15 +103,15 @@ public class PlayerCodeBuilder
             Debug.LogWarning("UnityEngine.UIElements not found - skipping");
         }
 
-        // Твои собственные сборки
         references.Add(MetadataReference.CreateFromFile(typeof(Robot).Assembly.Location));
         references.Add(MetadataReference.CreateFromFile(typeof(RobotHardware).Assembly.Location));
 
         return references;
     }
 
-    private bool InitializeUserCode(Robot targetRobot, Events m)
+    private bool InitializeUserCode(Robot targetRobot, out Events m)
     {
+        m = new Events();
         try
         {
             _mainType = _userAssembly.GetType("main");
@@ -131,9 +129,16 @@ public class PlayerCodeBuilder
             var initMethod = _mainType.GetMethod("Init");
             initMethod?.Invoke(_userInstance, new object[] { targetRobot });
 
+            Debug.Log(_startMethod);
+            Debug.Log(_updateMethod);
+            Debug.Log(_userAssembly);
             m.Start = _startMethod;
             m.Update = _updateMethod;
             m.userInstance = _userInstance;
+
+            Debug.Log(m.Start);
+            Debug.Log(m.Update);
+            Debug.Log(m.userInstance);
 
             return true;
         }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -18,9 +19,17 @@ public class userCodeExecutor : MonoBehaviour
     }
     void Update()
     {
-        if (_runing)
+        if (_runing && ActualEvent.Update != null)
         {
-            ActualEvent.Update?.Invoke(ActualEvent.userInstance, null);
+            try
+            {
+                ActualEvent.Update.Invoke(ActualEvent.userInstance, null);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"❌ Ошибка в пользовательском Update: {e}");
+                _runing = false;
+            }
         }
     }
 
@@ -38,8 +47,10 @@ public class userCodeExecutor : MonoBehaviour
         if (collected)
         {
             _runing = true;
+            Debug.Log("Before invoking Start");
+            Debug.Log(ActualEvent.Start);
             ActualEvent.Start?.Invoke(ActualEvent.userInstance, null);
-            Debug.Log("Start!");
+            Debug.Log("After invoking Start");
         }
     }
 

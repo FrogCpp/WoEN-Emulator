@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -23,6 +23,9 @@ public class RobotHardware
 
     public void Init(Robot _robot)
     {
+        robot = _robot;
+
+        Debug.Log($"🤖 RobotHardware.Init() вызван! Robot: {_robot != null}");
         robot = _robot;
     }
 }
