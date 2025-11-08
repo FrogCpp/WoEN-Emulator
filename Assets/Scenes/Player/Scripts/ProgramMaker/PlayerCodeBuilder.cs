@@ -54,9 +54,6 @@ public class PlayerCodeBuilder
             _userAssembly = Assembly.Load(ms.ToArray());
 
             bool outp =  InitializeUserCode(targetRobot, out methods);
-            Debug.Log(methods.Start);
-            Debug.Log(methods.Update);
-            Debug.Log(methods.userInstance);
             return outp;
         }
         catch (Exception e)
@@ -129,16 +126,9 @@ public class PlayerCodeBuilder
             var initMethod = _mainType.GetMethod("Init");
             initMethod?.Invoke(_userInstance, new object[] { targetRobot });
 
-            Debug.Log(_startMethod);
-            Debug.Log(_updateMethod);
-            Debug.Log(_userAssembly);
             m.Start = _startMethod;
             m.Update = _updateMethod;
             m.userInstance = _userInstance;
-
-            Debug.Log(m.Start);
-            Debug.Log(m.Update);
-            Debug.Log(m.userInstance);
 
             return true;
         }

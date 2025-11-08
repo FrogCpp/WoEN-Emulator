@@ -35,11 +35,8 @@ public class userCodeExecutor : MonoBehaviour
 
     public void Build()
     {
-        Debug.Log("trying to build");
         string code = File.ReadAllText(way);
         collected = Builder.CompileAndLoad(code, robotLink, out ActualEvent);
-
-        Debug.Log("complite");
     }
 
     public void Run()
@@ -47,10 +44,7 @@ public class userCodeExecutor : MonoBehaviour
         if (collected)
         {
             _runing = true;
-            Debug.Log("Before invoking Start");
-            Debug.Log(ActualEvent.Start);
             ActualEvent.Start?.Invoke(ActualEvent.userInstance, null);
-            Debug.Log("After invoking Start");
         }
     }
 
@@ -70,7 +64,6 @@ public class userCodeExecutor : MonoBehaviour
             {
                 wheel.Force(0.0f, 0.0f);
             }
-            Debug.Log("End!");
         }
     }
 }
