@@ -1,13 +1,15 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
 public struct Events
 {
+    public object userInstance;
     public MethodInfo Start;
     public MethodInfo Update;
 }
@@ -65,13 +67,47 @@ public class PlayerCodeBuilder
     {
         var references = new List<MetadataReference>();
 
+        // Базовые системные сборки
         references.Add(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
         references.Add(MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location));
+        references.Add(MetadataReference.CreateFromFile(typeof(System.Collections.Generic.List<>).Assembly.Location));
+
+        // Unity сборки
+        references.Add(MetadataReference.CreateFromFile(typeof(UnityEngine.Object).Assembly.Location));
+        references.Add(MetadataReference.CreateFromFile(typeof(UnityEngine.Debug).Assembly.Location));
+        references.Add(MetadataReference.CreateFromFile(typeof(UnityEngine.GameObject).Assembly.Location));
+        references.Add(MetadataReference.CreateFromFile(typeof(UnityEngine.Mathf).Assembly.Location));
+
+        // Добавляем сборку netstandard (решает основную ошибку)
+        try
+        {
+            var netstandardPath = Assembly.Load("netstandard, Version=2.1.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").Location;
+            references.Add(MetadataReference.CreateFromFile(netstandardPath));
+        }
+        catch
+        {
+            // Альтернативный способ найти netstandard
+            var netstandardPath = Path.Combine(Path.GetDirectoryName(typeof(object).Assembly.Location), "netstandard.dll");
+            if (File.Exists(netstandardPath))
+            {
+                references.Add(MetadataReference.CreateFromFile(netstandardPath));
+            }
+        }
+
+        // Добавляем UnityEngine.UIElements если нужно
+        try
+        {
+            var uiElementsAssembly = Assembly.Load("UnityEngine.UIElementsModule");
+            references.Add(MetadataReference.CreateFromFile(uiElementsAssembly.Location));
+        }
+        catch
+        {
+            Debug.LogWarning("UnityEngine.UIElements not found - skipping");
+        }
+
+        // Твои собственные сборки
         references.Add(MetadataReference.CreateFromFile(typeof(Robot).Assembly.Location));
         references.Add(MetadataReference.CreateFromFile(typeof(RobotHardware).Assembly.Location));
-        references.Add(MetadataReference.CreateFromFile(typeof(Mathf).Assembly.Location));
-
-        references.Add(MetadataReference.CreateFromFile(typeof(UnityEngine.Object).Assembly.Location));
 
         return references;
     }
@@ -97,8 +133,8 @@ public class PlayerCodeBuilder
 
             m.Start = _startMethod;
             m.Update = _updateMethod;
-            //_startMethod?.Invoke(_userInstance, null);
-            //_updateMethod?.Invoke(_userInstance, null);
+            m.userInstance = _userInstance;
+
             return true;
         }
         catch (Exception e)

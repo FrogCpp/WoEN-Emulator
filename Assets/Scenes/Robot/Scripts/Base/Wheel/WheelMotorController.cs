@@ -33,6 +33,8 @@ public class WheelMotorController : MonoBehaviour
 
     public void Force(float motorUp, float motorDown)
     {
+        Debug.Log("call!");
+
         UpMotor = Mathf.Lerp(motorUp, 1f, -1f);
         DownMotor = Mathf.Lerp(motorDown, 1f, -1f);
 

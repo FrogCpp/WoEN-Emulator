@@ -14,10 +14,6 @@ public class Robot : MonoBehaviour
 
     void Start()
     {
-        foreach (var i in Odometry)
-        {
-            i.Force(0.5f, 0.48f);
-        }
     }
 }
 
