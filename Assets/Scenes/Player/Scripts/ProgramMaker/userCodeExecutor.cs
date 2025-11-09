@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 public class userCodeExecutor : MonoBehaviour
@@ -64,6 +65,18 @@ public class userCodeExecutor : MonoBehaviour
             {
                 wheel.Force(0.0f, 0.0f);
             }
+        }
+    }
+
+    [MenuItem("Tools/Select File")]
+    public void SelectProjFolder()
+    {
+        string path = EditorUtility.OpenFilePanel("Chose path to the project", "C:/", "cs");
+
+        if (!string.IsNullOrEmpty(path))
+        {
+            Debug.Log("Выбран файл: " + path);
+            way = path;
         }
     }
 }
