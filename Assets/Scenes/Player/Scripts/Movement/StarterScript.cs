@@ -9,10 +9,12 @@ using UnityEngine;
 
 public class StarterScript : MonoBehaviour
 {
+    private ConsoleController _console;
     void Start()
     {
+        _console = GameObject.FindWithTag("Console").GetComponent<ConsoleController>();
     #if UNITY_EDITOR
-        UnityEngine.Debug.Log("Пропуск проверки в редакторе");
+        _console.Log("Пропуск проверки в редакторе");
     #else
         CheckAdminRights();
     #endif
@@ -24,7 +26,7 @@ public class StarterScript : MonoBehaviour
         {
             if (!IsRunningAsAdmin())
             {
-                UnityEngine.Debug.Log("Требуются права администратора!");
+                _console.Error("Требуются права администратора!");
 
                 RestartAsAdmin();
 
@@ -32,11 +34,11 @@ public class StarterScript : MonoBehaviour
                 return;
             }
 
-            UnityEngine.Debug.Log("Права администратора подтверждены!");
+            _console.Log("Права администратора подтверждены!");
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError($"Ошибка проверки прав: {ex.Message}");
+            _console.Error($"Ошибка проверки прав: {ex.Message}");
             Application.Quit();
         }
     }
@@ -85,11 +87,11 @@ public class StarterScript : MonoBehaviour
         }
         catch (Win32Exception)
         {
-            UnityEngine.Debug.Log("Пользователь отклонил запрос прав администратора");
+            _console.Error("Пользователь отклонил запрос прав администратора");
         }
         catch (Exception ex)
         {
-            UnityEngine.Debug.LogError($"Ошибка перезапуска: {ex.Message}");
+            _console.Error($"Ошибка перезапуска: {ex.Message}");
         }
     }
 }

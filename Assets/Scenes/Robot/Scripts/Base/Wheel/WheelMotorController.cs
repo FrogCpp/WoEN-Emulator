@@ -33,12 +33,20 @@ public class WheelMotorController : MonoBehaviour
 
     public void Force(float motorUp, float motorDown)
     {
-        Debug.Log("call!");
 
         UpMotor = Mathf.Lerp(motorUp, 1f, -1f);
         DownMotor = Mathf.Lerp(motorDown, 1f, -1f);
 
         forwardSpeed = (UpMotor + DownMotor) / 2f;
         angularVelocity = (UpMotor - DownMotor) / 2f;
+    }
+
+    public void ResetPower()
+    {
+        _I.motorTorque = 0;
+        _I.steerAngle = 0;
+
+        forwardSpeed = 0;
+        angularVelocity = 0;
     }
 }

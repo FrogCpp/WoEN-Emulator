@@ -9,14 +9,17 @@ public class userCodeExecutor : MonoBehaviour
 {
     [SerializeField] private Robot robotLink;
 
-    private string way = "C:\\Users\\kessokuBand\\Documents\\projects\\WoEN-Emulator\\Assets\\Scenes\\Player\\TestPlayerProj\\Program.cs";
+    private ConsoleController _console;
+
+    private string way = "";
 
     private PlayerCodeBuilder Builder;
     private bool _runing = false, collected = false;
     private Events ActualEvent;
     void Start()
     {
-        Builder = new PlayerCodeBuilder();
+        _console = GameObject.FindWithTag("Console").GetComponent<ConsoleController>();
+        Builder = new PlayerCodeBuilder(_console);
     }
     void Update()
     {
@@ -28,7 +31,7 @@ public class userCodeExecutor : MonoBehaviour
             }
             catch (Exception e)
             {
-                Debug.LogError($"❌ Ошибка в пользовательском Update: {e}");
+                _console.Error($"❌ Ошибка в пользовательском Update: {e}");
                 _runing = false;
             }
         }
@@ -36,8 +39,19 @@ public class userCodeExecutor : MonoBehaviour
 
     public void Build()
     {
-        string code = File.ReadAllText(way);
-        collected = Builder.CompileAndLoad(code, robotLink, out ActualEvent);
+        _console.msg($"🔨 Компилируем проект: {way}");
+        collected = Builder.CompileProject(way, robotLink, out ActualEvent);
+
+        if (collected)
+        {
+            _console.Log($"✅ Проект скомпилирован успешно!");
+            _console.msg($"   Start метод: {ActualEvent.Start != null}");
+            _console.msg($"   Update метод: {ActualEvent.Update != null}");
+        }
+        else
+        {
+            _console.Error("❌ Ошибка компиляции проекта");
+        }
     }
 
     public void Run()
@@ -46,6 +60,7 @@ public class userCodeExecutor : MonoBehaviour
         {
             _runing = true;
             ActualEvent.Start?.Invoke(ActualEvent.userInstance, null);
+            _console.Log("✅ Начало исполнения!");
         }
     }
 
@@ -61,21 +76,25 @@ public class userCodeExecutor : MonoBehaviour
         {
             _runing = false;
 
-            foreach (var wheel in robotLink.Odometry) // потом переделать в функцию резета в роботе
+            _console.Error("❌ Остановка выполнения кода!");
+            foreach (var wheel in robotLink.Odometry) // сделано здесь, тк если делать в роботе, то это костыли
             {
-                wheel.Force(0.0f, 0.0f);
+                wheel.ResetPower();
             }
         }
     }
 
-    [MenuItem("Tools/Select File")]
+    [MenuItem("Tools/Select Project Folder")]
     public void SelectProjFolder()
     {
-        string path = EditorUtility.OpenFilePanel("Chose path to the project", "C:/", "cs");
+        string path = EditorUtility.OpenFolderPanel("Choose project folder", "C:/", "");
 
         if (!string.IsNullOrEmpty(path))
         {
-            Debug.Log("Выбран файл: " + path);
+            if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                path += Path.DirectorySeparatorChar;
+
+            _console.msg("Выбран файл: " + path);
             way = path;
         }
     }
