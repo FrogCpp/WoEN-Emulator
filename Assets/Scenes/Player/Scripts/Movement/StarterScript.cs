@@ -35,6 +35,8 @@ public class StarterScript : MonoBehaviour
             }
 
             _console.Log("Права администратора подтверждены!");
+
+            adjustingSettings();
         }
         catch (Exception ex)
         {
@@ -92,6 +94,27 @@ public class StarterScript : MonoBehaviour
         catch (Exception ex)
         {
             _console.Error($"Ошибка перезапуска: {ex.Message}");
+        }
+    }
+
+    private void adjustingSettings()
+    {
+        string batDir = Path.Combine(Application.dataPath, "../ref");
+        string batPath = Path.GetFullPath(Path.Combine(batDir, "config.bat"));
+
+        if (File.Exists(batPath))
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.FileName = "cmd.exe";
+            startInfo.Arguments = $"/C \"{batPath}\"";
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.CreateNoWindow = true;
+
+            Process.Start(startInfo);
+        }
+        else
+        {
+            UnityEngine.Debug.LogError($"Bat file not found: {batPath}");
         }
     }
 }

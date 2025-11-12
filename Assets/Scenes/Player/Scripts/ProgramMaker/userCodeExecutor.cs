@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -84,18 +85,47 @@ public class userCodeExecutor : MonoBehaviour
         }
     }
 
-    [MenuItem("Tools/Select Project Folder")]
+    
     public void SelectProjFolder()
     {
-        string path = EditorUtility.OpenFolderPanel("Choose project folder", "C:/", "");
+        var path = GetPath();
+        if (path == "") _console.msg("файл не выбран");
+        _console.msg("Выбран файл: " + path);
+    }
 
-        if (!string.IsNullOrEmpty(path))
+    private static string GetPath()
+    {
+        string powerShellScript = @"
+        Add-Type -AssemblyName System.Windows.Forms
+        $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
+        $folderBrowser.Description = 'Choose project folder'
+        $folderBrowser.RootFolder = 'MyComputer'
+        if ($folderBrowser.ShowDialog() -eq 'OK') {
+        return $folderBrowser.SelectedPath
+        }";
+
+        try
         {
-            if (!path.EndsWith(Path.DirectorySeparatorChar.ToString()))
-                path += Path.DirectorySeparatorChar;
+            ProcessStartInfo psi = new ProcessStartInfo()
+            {
+                FileName = "powershell",
+                Arguments = $"-Command \"{powerShellScript}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                CreateNoWindow = true
+            };
 
-            _console.msg("Выбран файл: " + path);
-            way = path;
+            using (Process process = Process.Start(psi))
+            {
+                process.WaitForExit();
+                string result = process.StandardOutput.ReadToEnd().Trim();
+                return string.IsNullOrEmpty(result) ? "" : result + Path.DirectorySeparatorChar;
+            }
+        }
+        catch (Exception e)
+        {
+            UnityEngine.Debug.LogError($"Ошибка PowerShell: {e}");
+            return "";
         }
     }
 }
